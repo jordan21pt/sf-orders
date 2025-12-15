@@ -1,0 +1,131 @@
+{
+  "info": {
+    "_postman_id": "54884d8c-a11d-495a-95b7-02c52c2f99d2",
+    "name": "sf-orders",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "41958169",
+    "_collection_link": "https://winter-crescent-285045.postman.co/workspace/sf-orders~188ca681-5d44-457a-a8d6-16032981f42f/collection/41958169-54884d8c-a11d-495a-95b7-02c52c2f99d2?action=share&source=collection_link&creator=41958169"
+  },
+  "item": [
+    {
+      "name": "orders",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:7551/orders",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "7551",
+          "path": ["orders"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "orders with items",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:7551/orders",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "7551",
+          "path": ["orders"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "orderById",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:7551/orders/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "7551",
+          "path": ["orders", "1"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "filter/orderByStatusId",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:7551/orders/filter?statusId=1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "7551",
+          "path": ["orders", "filter"],
+          "query": [
+            {
+              "key": "statusId",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/orders",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customer_id\": 1,\n  \"brand_id\": 10,\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 2\n    },\n    {\n      \"product_id\": 5,\n      \"quantity\": 1\n    }\n  ]\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:7551/orders",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "7551",
+          "path": ["orders"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/orders/:id/cancel",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customer_id\": 1,\n  \"brand_id\": 10,\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 2\n    },\n    {\n      \"product_id\": 5,\n      \"quantity\": 1\n    }\n  ]\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:7551/orders/:id/cancel",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "7551",
+          "path": ["orders", ":id", "cancel"],
+          "variable": [
+            {
+              "key": "id",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

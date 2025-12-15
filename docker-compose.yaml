@@ -1,0 +1,45 @@
+services:
+  sf-orders-db:
+    container_name: sf-orders-db
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: ${SF_ORDERS_DB_PASSWORD}
+      MYSQL_USER: ${SF_ORDERS_DB_USER}
+      MYSQL_PASSWORD: ${SF_ORDERS_DB_PASSWORD}
+      MYSQL_DATABASE: ${SF_ORDERS_DB_DB}
+    ports:
+      - "${SF_ORDERS_DB_PORT}:3306"
+    restart: always
+
+  sf-orders-db-shadow:
+    container_name: sf-orders-db-shadow
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: ${SF_ORDERS_DB_PASSWORD}
+      MYSQL_USER: ${SF_ORDERS_DB_USER}
+      MYSQL_PASSWORD: ${SF_ORDERS_DB_PASSWORD}
+      MYSQL_DATABASE: ${SF_ORDERS_DB_DB}
+    ports:
+      - "${SF_ORDERS_DB_SHADOW_PORT}:3306"
+    restart: always
+
+  sf-orders-api:
+    container_name: sf-orders-api
+    image: sf-orders-api
+    build:
+      context: ../..
+      dockerfile: services/sf-orders/Dockerfile
+    depends_on:
+      - sf-orders-db
+    environment:
+      SF_ORDERS_API_PORT: ${SF_ORDERS_API_PORT}
+      SF_ORDERS_DATABASE_URL: ${SF_ORDERS_DATABASE_URL_INTERNAL:-mysql://orders_user:orders_mei_g10_pass@sf-orders-db:3306/orders_db}
+      SHADOW_DATABASE_URL: ${SF_ORDERS_SHADOW_DATABASE_URL_INTERNAL:-mysql://orders_user:orders_mei_g10_pass@sf-orders-db-shadow:3306/orders_db}
+      SF_MQ_URL: ${SF_MQ_URL:-amqp://guest:guest@sf-mq:5672}
+      SF_MQ_EXCHANGE: ${SF_MQ_EXCHANGE:-sf.events}
+      SF_MQ_ORDERS_CREATED_KEY: ${SF_MQ_ORDERS_CREATED_KEY:-orders.created.v1}
+    ports:
+      - "${SF_ORDERS_API_PORT}:7551"
+
+volumes:
+  pgdata:
