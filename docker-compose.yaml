@@ -8,7 +8,7 @@ services:
       MYSQL_PASSWORD: ${SF_ORDERS_DB_PASSWORD}
       MYSQL_DATABASE: ${SF_ORDERS_DB_DB}
     ports:
-      - "${SF_ORDERS_DB_PORT}:3306"
+      - "${SF_ORDERS_DB_PORT}:3314"
     restart: always
 
   sf-orders-db-shadow:
@@ -20,21 +20,21 @@ services:
       MYSQL_PASSWORD: ${SF_ORDERS_DB_PASSWORD}
       MYSQL_DATABASE: ${SF_ORDERS_DB_DB}
     ports:
-      - "${SF_ORDERS_DB_SHADOW_PORT}:3306"
+      - "${SF_ORDERS_DB_SHADOW_PORT}:3315"
     restart: always
 
   sf-orders-api:
     container_name: sf-orders-api
     image: sf-orders-api
     build:
-      context: ../..
-      dockerfile: services/sf-orders/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     depends_on:
       - sf-orders-db
     environment:
       SF_ORDERS_API_PORT: ${SF_ORDERS_API_PORT}
-      SF_ORDERS_DATABASE_URL: ${SF_ORDERS_DATABASE_URL_INTERNAL:-mysql://orders_user:orders_mei_g10_pass@sf-orders-db:3306/orders_db}
-      SHADOW_DATABASE_URL: ${SF_ORDERS_SHADOW_DATABASE_URL_INTERNAL:-mysql://orders_user:orders_mei_g10_pass@sf-orders-db-shadow:3306/orders_db}
+      SF_ORDERS_DATABASE_URL: ${SF_ORDERS_DATABASE_URL_INTERNAL:-mysql://orders_user:orders_mei_g10_pass@sf-orders-db:3314/orders_db}
+      SHADOW_DATABASE_URL: ${SF_ORDERS_SHADOW_DATABASE_URL_INTERNAL:-mysql://orders_user:orders_mei_g10_pass@sf-orders-db-shadow:3315/orders_db}
       SF_MQ_URL: ${SF_MQ_URL:-amqp://guest:guest@sf-mq:5672}
       SF_MQ_EXCHANGE: ${SF_MQ_EXCHANGE:-sf.events}
       SF_MQ_ORDERS_CREATED_KEY: ${SF_MQ_ORDERS_CREATED_KEY:-orders.created.v1}

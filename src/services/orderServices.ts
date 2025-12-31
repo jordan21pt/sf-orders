@@ -5,42 +5,56 @@ import { statusMockData } from '../mock/mockStatus.js'
 import { shipmentMockData } from '../mock/mockShippment.js'
 import { paymentMockData } from '../mock/mockPayment.js'
 import { OrderItem } from '@prisma/client'
-import { publishEvent } from '@supplyflavors/messaging'
+// import { buildEvent, connectRabbit, createChannel, publish, assertExchange } from 'sf-messaging-rabbit'
 import { randomUUID } from 'crypto'
 
-const mqUrl = process.env.SF_MQ_URL
-const eventsExchange = process.env.SF_MQ_EXCHANGE || 'sf.events'
-const ordersCreatedKey = process.env.SF_MQ_ORDERS_CREATED_KEY || 'orders.created.v1'
+// const mqUrl = process.env.SF_MQ_URL
+// const eventsExchange = process.env.SF_MQ_EXCHANGE || 'sf.events'
+// const ordersCreatedKey = process.env.SF_MQ_ORDERS_CREATED_KEY || 'orders.created.v1'
 
-const publishOrderCreated = async (order: any) => {
-  const traceId = randomUUID()
-  try {
-    await publishEvent({
-      exchange: eventsExchange,
-      routingKey: ordersCreatedKey,
-      url: mqUrl,
-      payload: {
-        order_id: order.order_id,
-        customer_id: order.customer_id,
-        brand_id: order.brand_id,
-        status_id: order.status_id,
-        shipment_id: order.shipment_id,
-        payment_info_id: order.payment_info_id,
-        order_total: order.order_total,
-        items: order.items ?? order.Items ?? [],
-      },
-      source: 'sf-orders',
-      type: 'orders.created',
-      messageId: `order-${order.order_id}`,
-      traceId,
-      headers: {
-        'x-entity-id': order.order_id,
-      },
-    })
-  } catch (err) {
-    console.error('[orders] failed to publish orders.created', err)
-  }
-}
+// let channelPromise: Promise<import('amqplib').Channel> | null = null
+
+// const getChannel = async () => {
+//   if (channelPromise) return channelPromise
+//   if (!mqUrl) {
+//     throw new Error('SF_MQ_URL is required')
+//   }
+//   channelPromise = connectRabbit(mqUrl).then(async (connection) => {
+//     const channel = await createChannel(connection)
+//     await assertExchange(channel, eventsExchange, 'topic')
+//     return channel
+//   })
+//   return channelPromise
+// }
+
+// const publishOrderCreated = async (order: any) => {
+//   const traceId = randomUUID()
+//   try {
+//     const channel = await getChannel()
+//     const event = buildEvent({
+//       type: ordersCreatedKey,
+//       source: 'sf-orders',
+//       payload: {
+//         order_id: order.order_id,
+//         customer_id: order.customer_id,
+//         brand_id: order.brand_id,
+//         status_id: order.status_id,
+//         shipment_id: order.shipment_id,
+//         payment_info_id: order.payment_info_id,
+//         order_total: order.order_total,
+//         items: order.items ?? order.Items ?? [],
+//       },
+//     })
+//     await publish(channel, eventsExchange, ordersCreatedKey, event, {
+//       headers: {
+//         'x-entity-id': order.order_id,
+//         'x-trace-id': traceId,
+//       },
+//     })
+//   } catch (err) {
+//     console.error('[orders] failed to publish orders.created', err)
+//   }
+// }
 
 export const orderService = {
   listOrders: async (page?: number, pageSize?: number) => {
@@ -108,8 +122,8 @@ export const orderService = {
       items: enrichedItems,
     })
 
-    // Fire-and-forget ingestion to analytics
-    publishOrderCreated(order)
+    // // Fire-and-forget ingestion to analytics
+    // publishOrderCreated(order)
 
     return order
   },
