@@ -6,7 +6,7 @@ generator client {
 datasource db {
   provider = "mysql"
   url      = env("SF_ORDERS_DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  shadowDatabaseUrl = env("SF_ORDERS_SHADOW_DATABASE_URL")
 }
 
 // npx prisma migrate reset

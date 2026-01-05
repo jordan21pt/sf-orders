@@ -8,7 +8,7 @@
     "migrate": "prisma migrate dev",
     "dev": "NODE_ENV=development npm run migrate && tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node dist/src/server.js",
     "format": "prettier --write .",
     "static-analysis:lint": "eslint . --ext .ts",
     "static-analysis:typecheck": "tsc --noEmit",
