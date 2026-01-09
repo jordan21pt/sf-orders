@@ -7,9 +7,12 @@ services:
       MYSQL_USER: ${SF_ORDERS_DB_USER}
       MYSQL_PASSWORD: ${SF_ORDERS_DB_PASSWORD}
       MYSQL_DATABASE: ${SF_ORDERS_DB_DB}
+    # Mantemos as portas da DB para o teu DBeaver/Workbench funcionar em Dev
     ports:
-      - "${SF_ORDERS_DB_PORT:-3314}:3306"
+      - "${SF_ORDERS_DB_PORT:-3321}:3306"
     restart: always
+    networks:
+      - sf-shared-network # <--- Adicionado
     healthcheck:
       test:
         [
@@ -35,8 +38,10 @@ services:
       MYSQL_PASSWORD: ${SF_ORDERS_DB_PASSWORD}
       MYSQL_DATABASE: ${SF_ORDERS_DB_DB}
     ports:
-      - "${SF_ORDERS_DB_SHADOW_PORT:-3315}:3306"
+      - "${SF_ORDERS_DB_SHADOW_PORT:-3322}:3306"
     restart: always
+    networks:
+      - sf-shared-network # <--- Adicionado
 
   sf-orders-api:
     container_name: sf-orders-api
@@ -53,14 +58,23 @@ services:
       SF_ORDERS_API_PORT: ${SF_ORDERS_API_PORT}
       SF_ORDERS_DATABASE_URL: ${DOCKER_ORDERS_DATABASE_URL}
       SHADOW_DATABASE_URL: ${DOCKER_ORDERS_SHADOW_DATABASE_URL}
+      # Adicionamos a variável do segredo para o teu Middleware validar
+      GATEWAY_INTERNAL_SECRET: ${GATEWAY_INTERNAL_SECRET}
       SF_MQ_URL: ${SF_MQ_URL:-amqp://guest:guest@sf-mq:5672}
       SF_MQ_EXCHANGE: ${SF_MQ_EXCHANGE:-sf.events}
       SF_MQ_ORDERS_CREATED_KEY: ${SF_MQ_ORDERS_CREATED_KEY:-orders.created.v1}
     command: >
       sh -c "npx prisma migrate deploy &&
              npm run start"
-    ports:
-      - "${SF_ORDERS_API_PORT}:3316"
+    # REMOVEMOS as portas aqui para ninguém saltar o Gateway
+    # ports:
+    #   - "${SF_ORDERS_API_PORT}:3320"
+    networks:
+      - sf-shared-network # <--- Adicionado
+
+networks:
+  sf-shared-network: # Define a rede comum para todos os microserviços
+    external: true
 
 volumes:
-  pgdata:
+  pgdata: # Como usas MySQL, podes querer renomear para mysqldata para não confundir

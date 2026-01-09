@@ -1,5 +1,6 @@
 import express from "express";
 import client from "prom-client";
+import gatewayAuth from "./middlewares/gatewayAuth.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./swagger.js";
@@ -53,6 +54,8 @@ app.get("/metrics", async (_req, res) => {
     res.status(500).json({ error: "metrics_error" });
   }
 });
+
+app.use(gatewayAuth);
 
 app.use("/orders", orderRoutes);
 
