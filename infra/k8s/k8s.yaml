@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sf
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sf-orders-api
+  namespace: sf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sf-orders-api
+  template:
+    metadata:
+      labels:
+        app: sf-orders-api
+    spec:
+      containers:
+        - name: api
+          image: sf-orders-api:local
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          env:
+          - name: NODE_ENV
+            value: "production"
+
+          - name: SF_ORDERS_DB_HOST
+            value: "host.docker.internal"
+
+          - name: SF_ORDERS_DB_PORT
+            value: "3314"
+
+          - name: SF_ORDERS_DB_USER
+            value: "orders_user"
+
+          - name: SF_ORDERS_DB_PASSWORD
+            value: "orders_mei_g10_pass"
+
+          - name: SF_ORDERS_DB_DB
+            value: "orders_db"
+
+          - name: SF_ORDERS_API_PORT
+            value: "3000"
+
+          - name: SF_ORDERS_DATABASE_URL
+            value: "mysql://orders_user:orders_mei_g10_pass@host.docker.internal:3314/orders_db"
+
+          - name: SF_ORDERS_SHADOW_DATABASE_URL
+            value: "mysql://orders_user:orders_mei_g10_pass@host.docker.internal:3315/orders_db"
+
+          - name: SF_MQ_URL
+            value: "amqp://guest:guest@sf-mq:5672"
+
+          - name: SF_MQ_EXCHANGE
+            value: "sf.events"
+
+          - name: SF_MQ_ORDERS_CREATED_KEY
+            value: "orders.created.v1"
+
+          ports:
+            - containerPort: 3000
+          # O comando aguarda o banco estar disponível antes de rodar a migração
+          command: ["sh", "-c"]
+          args: 
+            - |
+              echo "Aguardando banco de dados..."
+              npx prisma migrate deploy && 
+              npm run start
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sf-orders-api
+  namespace: sf
+spec:
+  type: ClusterIP
+  selector:
+    app: sf-orders-api
+  ports:
+    - port: 3000
+      targetPort: 3000
