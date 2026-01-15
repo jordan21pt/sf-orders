@@ -34,6 +34,7 @@ const getChannel = async () => {
 const publishOrderCreated = async (order: any) => {
   const traceId = randomUUID()
   try {
+    console.log('publishing order rabbit ...')
     const channel = await getChannel()
     const event = buildEvent({
       type: ordersCreatedKey,
@@ -45,37 +46,16 @@ const publishOrderCreated = async (order: any) => {
         currency: defaultCurrency,
       },
     })
+    console.log('publishing order 2 rabbit ...')
     await publish(channel, eventsExchange, ordersCreatedKey, event, {
       headers: {
         'x-entity-id': String(order.order_id ?? order.id),
         'x-trace-id': traceId,
       },
     })
+    console.log('publishing order 3 rabbit ...')
   } catch (err) {
     console.error('[orders] failed to publish orders.order.created.v1', err)
-  }
-}
-
-const publishOrderCancelled = async (order: any, reason: string) => {
-  const traceId = randomUUID()
-  try {
-    const channel = await getChannel()
-    const event = buildEvent({
-      type: ordersCancelledKey,
-      source: 'sf-orders',
-      payload: {
-        orderId: String(order.order_id ?? order.id),
-        reason,
-      },
-    })
-    await publish(channel, eventsExchange, ordersCancelledKey, event, {
-      headers: {
-        'x-entity-id': String(order.order_id ?? order.id),
-        'x-trace-id': traceId,
-      },
-    })
-  } catch (err) {
-    console.error('[orders] failed to publish orders.order.cancelled.v1', err)
   }
 }
 
@@ -174,8 +154,6 @@ export const orderService = {
       throw error
     }
 
-    const updatedOrder = await orderRepository.updateStatus(id, 5)
-    publishOrderCancelled(updatedOrder, 'cancelled_by_user')
-    return updatedOrder
+   
   },
 }

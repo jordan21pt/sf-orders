@@ -55,7 +55,7 @@ app.get("/metrics", async (_req, res) => {
   }
 });
 
-app.use(gatewayAuth);
+// app.use(gatewayAuth);
 
 app.use("/orders", orderRoutes);
 
