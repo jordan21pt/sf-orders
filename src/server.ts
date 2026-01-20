@@ -4,6 +4,7 @@ import gatewayAuth from "./middlewares/gatewayAuth.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./swagger.js";
+import { startStockResponseConsumer } from "./messaging/consumers/stock-response.consumer.js";
 
 const svc = "sf-orders";
 const origLog = console.log;
@@ -63,6 +64,10 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get("/", (_req, res) => {
   res.status(200).json({ message: "Orders" });
+});
+
+startStockResponseConsumer().catch((err) => {
+  console.error("[messaging] failed to start stock response consumer", err);
 });
 
 if (process.env.NODE_ENV !== "test") {

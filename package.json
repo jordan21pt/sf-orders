@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/client": "6.2.1",
-    "@rjrcosta/contracts": "^1.0.0",
+    "@rjrcosta/contracts": "1.0.4",
     "@rjrcosta/messaging-rabbit": "^1.0.0",
     "amqplib": "^0.10.9",
     "express": "5.1.0",

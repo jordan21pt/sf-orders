@@ -65,7 +65,7 @@ export async function getOrderById(req: Request, res: Response) {
 // Create a new order
 export async function createOrder(req: Request, res: Response) {
   try {
-    const { customer_id, brand_id, items } = req.body
+    const { customer_id, brand_id, items} = req.body
     if (!customer_id || !brand_id || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: 'Missing required fields' })
     }

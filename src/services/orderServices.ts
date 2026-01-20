@@ -6,12 +6,13 @@ import { shipmentMockData } from '../mock/mockShippment.js'
 import { paymentMockData } from '../mock/mockPayment.js'
 import { OrderItem } from '@prisma/client'
 import { assertExchange, buildEvent, connectRabbit, createChannel, publish } from '@rjrcosta/messaging-rabbit'
-import { OrderCancelledV1, OrderCreatedV1 } from '@rjrcosta/contracts'
+import { OrderCancelledV1, OrderCreatedV1, StockCheckV1 } from '@rjrcosta/contracts'
 import { randomUUID } from 'crypto'
 
 const mqUrl = process.env.SF_MQ_URL
 const eventsExchange = process.env.SF_MQ_EXCHANGE || 'sf.events'
 const ordersCreatedKey = OrderCreatedV1.type
+const checkStock = StockCheckV1.type
 const ordersCancelledKey = OrderCancelledV1.type
 const defaultCurrency = process.env.SF_CURRENCY || 'EUR'
 const prefetch = Number(process.env.SF_MQ_PREFETCH || 10)
@@ -40,8 +41,8 @@ const publishOrderCreated = async (order: any) => {
       type: ordersCreatedKey,
       source: 'sf-orders',
       payload: {
-        orderId: String(order.order_id ?? order.id),
-        customerId: String(order.customer_id),
+        order_id: String(order.order_id),
+        customer_id: String(order.customer_id),
         total: Number(order.order_total),
         currency: defaultCurrency,
       },
@@ -49,7 +50,7 @@ const publishOrderCreated = async (order: any) => {
     console.log('publishing order 2 rabbit ...')
     await publish(channel, eventsExchange, ordersCreatedKey, event, {
       headers: {
-        'x-entity-id': String(order.order_id ?? order.id),
+        'x-entity-id': String(order.order_id),
         'x-trace-id': traceId,
       },
     })
@@ -58,6 +59,53 @@ const publishOrderCreated = async (order: any) => {
     console.error('[orders] failed to publish orders.order.created.v1', err)
   }
 }
+
+
+const stockCheck = async (order: any) => {
+  const traceId = randomUUID();
+
+  const requestId = randomUUID();
+
+  try {
+    console.log("publishing catalog.stock.check.v1 ...");
+
+    const channel = await getChannel();
+    console.log(order)
+   
+    const rawItems = order.items ?? [];
+    console.log(rawItems)
+    const items = rawItems.map((it: any) => ({
+      productId: it.productId,
+      quantity: Number(it.quantity),
+    }));
+    console.log('Items', items)
+
+
+    const safeItems = items.filter((i: any) => i.productId && i.quantity > 0);
+
+    console.log(safeItems)
+    const event = buildEvent({
+      type: StockCheckV1.type,        
+      source: "sf-orders",
+      payload: {
+        requestId,
+        items: safeItems,
+      },
+    });
+
+    await publish(channel, eventsExchange, StockCheckV1.type, event, {
+      headers: {
+        "x-entity-id": order.orderId,
+        "x-trace-id": traceId,
+        "x-request-id": requestId, 
+      },
+    });
+
+    console.log("published catalog.stock.check.v1 ✅", order.order_id);
+  } catch (err) {
+    console.error("[orders] failed to publish catalog.stock.check.v1", err);
+  }
+};
 
 
 export const orderService = {
@@ -100,11 +148,11 @@ export const orderService = {
     const enrichedItems = items.map((item: { product_id: number; quantity: number }) => {
       const product = productsMockData.find((p) => p.productId === item.product_id)!
 
-      if (!product) {
-        const error: any = new Error(`Invalid product_id: ${item.product_id}`)
-        error.statusCode = 400
-        throw error
-      }
+      // if (!product) {
+      //   const error: any = new Error(`Invalid product_id: ${item.product_id}`)
+      //   error.statusCode = 400
+      //   throw error
+      // }
 
       const unit_price = product.price
       const total_price = unit_price * item.quantity
@@ -125,6 +173,15 @@ export const orderService = {
       shipment_id: shipmentMockData[0].shipment_status_id, // Default to PENDING
       payment_info_id: paymentMockData[0].payment_status_id, // Default to AWAITING
       items: enrichedItems,
+    })
+
+    // 4) publicar stock check com orderId + items
+    await stockCheck({
+        orderId: order.order_id,
+        items: enrichedItems.map((it: any) => ({
+        productId: it.product_id,
+        quantity: Number(it.quantity),
+      })),
     })
 
     // Fire-and-forget ingestion to analytics
