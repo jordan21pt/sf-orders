@@ -41,8 +41,8 @@ const publishOrderCreated = async (order: any) => {
       type: ordersCreatedKey,
       source: 'sf-orders',
       payload: {
-        order_id: String(order.order_id),
-        customer_id: String(order.customer_id),
+        orderId: order.order_id,
+        customerId: order.customer_id,
         total: Number(order.order_total),
         currency: defaultCurrency,
       },
